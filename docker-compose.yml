@@ -26,14 +26,14 @@ services:
     container_name: rabbitmq
     ports:
       - "5000:5000"
-#  localstack:
-#    image: localstack/localstack:1.0.4
-#    ports:
-#      - '4566:4566'
-#    volumes:
-#      - "${TMPDIR:-/tmp/localstack}:/tmp/localstack"
-#      - "/var/run/docker.sock:/var/run/docker.sock"
-#    env_file: .env
+  localstack:
+    image: localstack/localstack:1.0.4
+    ports:
+      - '4566:4566'
+    volumes:
+      - "${TMPDIR:-/tmp/localstack}:/tmp/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    env_file: .env
   microservice:
     build: ./microservice
     container_name: microservice
