@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+  postgresdb:
+    image: postgres:latest
+    container_name: postgresdb
+    ports:
+      - "4000:4000"
+    environment:
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_DB=${DATABASE_NAME}
+    restart: always
+    healthcheck:
+      test: /usr/bin/pg_isready -U postgres
+      interval: 5s
+      timeout: 10s
+      retries: 120
+    env_file: .env
+  core:
+    build: .
+    container_name: core
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgresdb:
+        condition: service_healthy
+  rabbitmq:
+    image: rabbitmq:latest
+    container_name: rabbitmq
+    ports:
+      - "5000:5000"
+  localstack:
+    image: localstack/localstack:latest
+    environment:
+      - AWS_DEFAULT_REGION=${LOCALSTACK_REGION}
+      - EDGE_PORT=${LOCALSTACK_EDGE_PORT}
+      - SERVICES=${LOCALSTACK_SERVICES}
+      - KINESIS_PROVIDER=${LOCALSTACK_KINESIS_PROVIDER}
+    ports:
+      - '4566:4566'
+    volumes:
+      - "${TMPDIR:-/tmp/localstack}:/tmp/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    env_file: .env
+  microservice:
+    build: ./microservice
+    container_name: microservice
+    ports:
+      - "3000:3000"
