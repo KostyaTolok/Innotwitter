@@ -9,7 +9,7 @@ class TagSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class PageDetailSerializer(serializers.ModelSerializer):
+class PageSerializer(serializers.ModelSerializer):
     owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
     class Meta:
@@ -18,10 +18,16 @@ class PageDetailSerializer(serializers.ModelSerializer):
         read_only_fields = ["followers", "follow_requests"]
 
 
-class PageListSerializer(serializers.ModelSerializer):
-    owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
+class PageDetailSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
 
     class Meta:
         model = Page
-        fields = ["uuid", "name", "image_path", "is_private", "unblock_date", "owner", "tags"]
+        fields = "__all__"
+        read_only_fields = ["followers", "follow_requests"]
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        if instance.unblock_date:
+            representation['unblock_date'] = instance.unblock_date.strftime("%d.%m.%Y %H:%M")
+        return representation
