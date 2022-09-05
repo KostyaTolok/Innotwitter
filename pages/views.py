@@ -1,87 +1,65 @@
-from rest_framework import viewsets, mixins, status
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import viewsets, mixins
 from rest_framework.decorators import action
-from rest_framework.response import Response
 
+from pages.filters import PageFilter
 from pages.models import Page, Tag
-from pages.serializers import PageSerializer, PageDetailSerializer, TagSerializer
-from users.serializers import UserSerializer
+from pages.serializers import PageSerializer, PageDetailSerializer, TagSerializer, AcceptFollowSerializer
+from pages.services import add_user_to_followers, remove_user_from_followers, serialize_follow_requests, \
+    accept_follow_request, accept_all_follow_requests
 
 
 class PageViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, mixins.UpdateModelMixin,
                   mixins.DestroyModelMixin, viewsets.GenericViewSet):
-    serializer_class = PageDetailSerializer
+    serializer_classes = {
+        'list': PageDetailSerializer,
+        'retrieve': PageDetailSerializer,
+        'create': PageSerializer,
+        'update': PageSerializer,
+        'destroy': PageSerializer,
+        'accept_follow_request': AcceptFollowSerializer
+    }
     queryset = Page.objects.all()
+    default_serializer_class = PageSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = PageFilter
 
     def get_serializer_class(self):
-        if self.action in ('list', 'retrieve'):
-            return PageDetailSerializer
-        else:
-            return PageSerializer
-
-    def get_queryset(self):
-        query_dict = {key: value for key, value in self.request.query_params.items() if value}
-        filter_dict = {}
-
-        for key, value in query_dict.items():
-            if key == "name":
-                filter_dict["name__icontains"] = value
-            if key == "uuid":
-                filter_dict["uuid"] = value
-            if key == "tag":
-                filter_dict["tags__name__icontains"] = value
-
-        queryset = Page.objects.filter(**filter_dict)
-        return queryset
+        return self.serializer_classes.get(self.action, self.default_serializer_class)
 
     @action(detail=True, methods=["post"])
     def follow(self, request, pk=None):
         user = request.user
 
-        if user.is_blocked:
-            return Response("User is blocked", status=status.HTTP_403_FORBIDDEN)
-
         page = self.get_object()
 
-        if page.unblock_date is not None:
-            return Response("Page is blocked", status=status.HTTP_403_FORBIDDEN)
-
-        if page.followers.contains(user):
-            return Response("User already follows this page", status=status.HTTP_400_BAD_REQUEST)
-
-        if page.follow_requests.contains(user):
-            return Response("User already sent follow request to this page", status=status.HTTP_400_BAD_REQUEST)
-
-        if page.is_private:
-            page.follow_requests.add(user)
-            return Response("User added to follow requests", status=status.HTTP_200_OK)
-        else:
-            page.followers.add(user)
-            return Response("User added to followers", status=status.HTTP_200_OK)
+        return add_user_to_followers(page, user)
 
     @action(detail=True, methods=["post"])
     def unfollow(self, request, pk=None):
         user = request.user
 
-        if user.is_blocked:
-            return Response("User is blocked", status=status.HTTP_403_FORBIDDEN)
-
         page = self.get_object()
 
-        if page.unblock_date is not None:
-            return Response("Page is blocked", status=status.HTTP_403_FORBIDDEN)
-
-        if not page.followers.contains(user):
-            return Response("User doesn't follow this page", status=status.HTTP_400_BAD_REQUEST)
-
-        page.followers.remove(user)
-        return Response("User removed from followers", status=status.HTTP_200_OK)
+        return remove_user_from_followers(page, user)
 
     @action(detail=True, methods=["get"], url_path="follow-requests")
     def get_follow_requests(self, request, pk=None):
         page = self.get_object()
-        serializer = UserSerializer(data=page.follow_requests, many=True)
-        serializer.is_valid()
-        return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return serialize_follow_requests(page.follow_requests)
+
+    @action(detail=True, methods=["post"], url_path="accept-follow")
+    def accept_follow_request(self, request, pk=None):
+        page = self.get_object()
+
+        return accept_follow_request(page, request.data)
+
+    @action(detail=True, methods=["post"], url_path="accept-all-follows")
+    def accept_all_follow_requests(self, request, pk=None):
+        page = self.get_object()
+
+        return accept_all_follow_requests(page)
 
 
 class TagViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, mixins.UpdateModelMixin,

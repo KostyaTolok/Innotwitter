@@ -16,6 +16,7 @@ python-dotenv = "*"
 pydantic = "*"
 uvicorn = "*"
 uuid = "*"
+django-filter = "*"
 
 [dev-packages]
 

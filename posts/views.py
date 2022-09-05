@@ -1,21 +1,29 @@
-from rest_framework import viewsets, mixins, status
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import viewsets, mixins
 from rest_framework.decorators import action
-from rest_framework.response import Response
 
+from posts.filters import PostFilter
 from posts.models import Post
 from posts.serializers import PostSerializer, PostDetailSerializer
+from posts.services import change_post_like_status, serialize_posts
 
 
 class PostViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, mixins.UpdateModelMixin,
                   mixins.DestroyModelMixin, viewsets.GenericViewSet):
-    serializer_class = PostSerializer
+    serializer_classes = {
+        'list': PostDetailSerializer,
+        'retrieve': PostDetailSerializer,
+        'create': PostSerializer,
+        'update': PostSerializer,
+        'destroy': PostSerializer
+    }
+    default_serializer_class = PostSerializer
     queryset = Post.objects.all()
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = PostFilter
 
     def get_serializer_class(self):
-        if self.action in ('list', 'retrieve'):
-            return PostDetailSerializer
-        else:
-            return PostSerializer
+        return self.serializer_classes.get(self.action, self.default_serializer_class)
 
     def get_queryset(self):
         params = self.request.query_params
@@ -30,26 +38,13 @@ class PostViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Creat
     def change_like_status(self, request, pk=None):
         user = request.user
 
-        if user.is_blocked:
-            return Response("User is blocked", status=status.HTTP_403_FORBIDDEN)
-
         post = self.get_object()
 
-        if post.likes.contains(user):
-            post.likes.remove(user)
-            return Response("Like removed", status=status.HTTP_200_OK)
-        else:
-            post.likes.add(user)
-            return Response("Post liked", status=status.HTTP_200_OK)
+        return change_post_like_status(post, user)
 
     @action(detail=False, methods=["get"], url_path="liked-posts")
     def get_liked_posts(self, request):
         user = request.user
 
-        if user.is_blocked:
-            return Response("User is blocked", status=status.HTTP_403_FORBIDDEN)
-
         posts = self.get_queryset().filter(likes=user.id)
-        serializer = PostDetailSerializer(data=posts, many=True)
-        serializer.is_valid()
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return serialize_posts(posts)
