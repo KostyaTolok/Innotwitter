@@ -17,6 +17,7 @@ pydantic = "*"
 uvicorn = "*"
 uuid = "*"
 django-filter = "*"
+django-cors-headers = "*"
 
 [dev-packages]
 
