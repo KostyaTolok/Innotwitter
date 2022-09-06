@@ -33,3 +33,6 @@ class LoginSerializer(serializers.ModelSerializer):
         model = User
         fields = ("username", "password")
         extra_kwargs = {"password": {"write_only": True}}
+
+class BlockUserSerializer(serializers.Serializer):
+    pass
