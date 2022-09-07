@@ -6,7 +6,6 @@ from users.serializers import UserSerializer
 
 
 class PostSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Post
         fields = ("page", "content", "reply_to")
@@ -17,7 +16,7 @@ class PostDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ("page", "content", "reply_to", "likes", "created_at", "updated_at")
+        fields = ("id", "page", "content", "reply_to", "likes", "created_at", "updated_at")
         read_only_fields = ("created_at", "updated_at")
 
     def to_representation(self, instance):

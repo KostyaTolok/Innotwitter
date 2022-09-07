@@ -1,11 +1,12 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, mixins
+from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from posts.filters import PostFilter
 from posts.models import Post
 from posts.serializers import PostSerializer, PostDetailSerializer
-from posts.services import change_post_like_status, serialize_posts
+from posts.services import change_post_like_status, get_news_feed
 
 
 class PostViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, mixins.UpdateModelMixin,
@@ -15,7 +16,9 @@ class PostViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Creat
         'retrieve': PostDetailSerializer,
         'create': PostSerializer,
         'update': PostSerializer,
-        'destroy': PostSerializer
+        'destroy': PostSerializer,
+        'get_liked_posts': PostDetailSerializer,
+        'get_news_feed': PostDetailSerializer
     }
     default_serializer_class = PostSerializer
     queryset = Post.objects.all()
@@ -25,26 +28,18 @@ class PostViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Creat
     def get_serializer_class(self):
         return self.serializer_classes.get(self.action, self.default_serializer_class)
 
-    def get_queryset(self):
-        params = self.request.query_params
-        page_uuid = params.get("page", None)
-
-        if page_uuid is None:
-            return Post.objects.all()
-        else:
-            return Post.objects.filter(page__uuid=page_uuid)
-
     @action(detail=True, methods=["post"], url_path="change-like")
     def change_like_status(self, request, pk=None):
         user = request.user
 
         post = self.get_object()
 
-        return change_post_like_status(post, user)
+        message, status_code = change_post_like_status(post, user)
 
-    @action(detail=False, methods=["get"], url_path="liked-posts")
-    def get_liked_posts(self, request):
-        user = request.user
+        return Response(message, status_code)
 
-        posts = self.get_queryset().filter(likes=user.id)
-        return serialize_posts(posts)
+    @action(detail=False, methods=["get"], url_path="news-feed")
+    def get_news_feed(self, request):
+        posts = get_news_feed(request.user)
+        serializer = PostDetailSerializer(posts, many=True)
+        return Response(serializer.data, status.HTTP_200_OK)
