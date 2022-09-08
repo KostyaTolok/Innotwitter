@@ -1,11 +1,13 @@
 from datetime import timedelta
 
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from Innotwitter.permissions import IsAdmin
 from users.filters import UserFilter
 from users.models import User
 from users.serializers import UserSerializer, RegisterSerializer, LoginSerializer, BlockUserSerializer
@@ -21,10 +23,11 @@ class UserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Gen
         'change_user_block_status': BlockUserSerializer
     }
     permission_classes = {
-        'list': (AllowAny(), ),
-        'retrieve': (AllowAny(), ),
-        'register': (AllowAny(), ),
-        'login': (AllowAny(), )
+        'list': (IsAdmin(),),
+        'retrieve': (IsAdmin(),),
+        'register': (AllowAny(),),
+        'login': (AllowAny(),),
+        'change_user_block_status': (IsAdmin(),)
     }
     queryset = User.objects.all()
     filter_backends = (DjangoFilterBackend,)
@@ -58,8 +61,8 @@ class UserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Gen
 
         username = request.data.get("username")
 
-        user = User.objects.filter(username=username).first()
+        user = get_object_or_404(User, username=username)
 
-        token = generate_token(username, user.role, timedelta(minutes=60))
+        token = generate_token(username, user.role, timedelta(days=60))
 
         return Response({"token": token}, status.HTTP_200_OK)

@@ -1,6 +1,7 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import jwt
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 
 from Innotwitter.settings import JWT_SECRET_KEY
@@ -11,10 +12,7 @@ def change_user_block_status(user_id):
     if user_id is None:
         return "User id isn't provided", status.HTTP_400_BAD_REQUEST
 
-    user = User.objects.filter(id=user_id).prefetch_related("pages").first()
-
-    if user is None:
-        return "User doesn't exist", status.HTTP_400_BAD_REQUEST
+    user = get_object_or_404(User, id=user_id)
 
     user.is_blocked = not user.is_blocked
     for page in user.pages.all():
