@@ -1,3 +1,5 @@
+import datetime
+
 from django.db import models
 import uuid
 
@@ -15,6 +17,7 @@ class Page(models.Model):
     description = models.TextField(verbose_name="Page description", max_length=500)
     image_path = models.URLField(verbose_name="Page image path", null=True, blank=True)
     is_private = models.BooleanField(verbose_name="Is page private", default=False)
+    is_blocked_permanently = models.BooleanField(verbose_name="Is page blocked permanently", default=False)
     unblock_date = models.DateTimeField(verbose_name="Page unblock date", null=True, blank=True)
 
     tags = models.ManyToManyField(Tag, verbose_name="Page tags", related_name='pages')

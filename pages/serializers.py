@@ -16,8 +16,8 @@ class PageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Page
-        fields = ("uuid", "name", "description", "image_path", "is_private", "unblock_date", "tags", "owner",
-                  "followers", "follow_requests")
+        fields = ("uuid", "name", "description", "image_path", "is_private", "is_blocked_permanently",
+                  "unblock_date", "tags", "owner", "followers", "follow_requests")
         read_only_fields = ("followers", "follow_requests")
 
 
@@ -26,8 +26,8 @@ class PageDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Page
-        fields = ("uuid", "name", "description", "image_path", "is_private", "unblock_date", "tags", "owner",
-                  "followers", "follow_requests")
+        fields = ("uuid", "name", "description", "image_path", "is_private", "is_blocked_permanently",
+                  "unblock_date", "tags", "owner", "followers", "follow_requests")
         read_only_fields = ("followers", "follow_requests")
 
     def to_representation(self, instance):

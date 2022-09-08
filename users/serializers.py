@@ -1,4 +1,5 @@
-from rest_framework import serializers
+from django.shortcuts import get_object_or_404
+from rest_framework import serializers, status
 
 from users.models import User
 
@@ -27,9 +28,21 @@ class RegisterSerializer(serializers.ModelSerializer):
         return instance
 
 
-class LoginSerializer(serializers.ModelSerializer):
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField(write_only=True)
 
-    class Meta:
-        model = User
-        fields = ("username", "password")
-        extra_kwargs = {"password": {"write_only": True}}
+    def validate(self, user_data):
+        username = user_data.get("username")
+        password = user_data.get("password")
+
+        user = get_object_or_404(User, username=username)
+
+        if not user.check_password(password):
+            raise serializers.ValidationError("Password is incorrect", status.HTTP_400_BAD_REQUEST)
+
+        return user_data
+
+
+class BlockUserSerializer(serializers.Serializer):
+    user_id = serializers.IntegerField(min_value=1)
