@@ -1,6 +1,7 @@
 from rest_framework import status
 
 from posts.models import Post
+from posts.serializers import PostDetailSerializer
 
 
 def change_post_like_status(post, user):
@@ -13,7 +14,7 @@ def change_post_like_status(post, user):
 
 
 def get_news_feed(user):
-    user_posts = Post.objects.filter(page__owner=user)
+    user_posts = Post.objects.filter(page__owner=user, page__is_blocked_permanently=False, page__unblock_date=None)
 
     follows = Post.objects.filter(page__followers=user)
 
@@ -22,3 +23,12 @@ def get_news_feed(user):
     posts = posts.distinct().order_by("-created_at")
 
     return posts
+
+
+def get_liked_posts(user):
+    liked_posts = Post.objects.filter(likes=user, page__is_blocked_permanently=False, page__unblock_date=None)
+
+    serializer = PostDetailSerializer(data=liked_posts, many=True)
+    serializer.is_valid()
+
+    return serializer.data

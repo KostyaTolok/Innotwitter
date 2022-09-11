@@ -1,6 +1,5 @@
 from rest_framework import serializers
 
-from pages.serializers import PageDetailSerializer
 from posts.models import Post
 from users.serializers import UserSerializer
 

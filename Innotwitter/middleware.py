@@ -1,8 +1,5 @@
 import jwt
 from django.http import HttpResponse
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.renderers import JSONRenderer
 
 from Innotwitter.settings import JWT_SECRET_KEY
 from users.models import User
