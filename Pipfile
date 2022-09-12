@@ -18,6 +18,8 @@ uvicorn = "*"
 uuid = "*"
 django-filter = "*"
 django-cors-headers = "*"
+pytest-django = "*"
+pytest-factoryboy = "*"
 
 [dev-packages]
 

@@ -7,7 +7,8 @@ from rest_framework.response import Response
 from Innotwitter.permissions import IsAdmin, IsAdminOrModerator
 from pages.filters import PageFilter
 from pages.models import Page, Tag
-from pages.permissions import IsPageOwner, IsPageNotPrivate, IsPageNotBlocked, IsNotPageOwner
+from pages.permissions import IsPageOwner, IsPageNotBlocked, IsNotPageOwner, \
+    IsPageNotBlockedOrIsAdminOrModerator, IsPageNotPrivateOrIsOwnerOrAdminOrModerator
 from pages.serializers import PageSerializer, PageDetailSerializer, TagSerializer, AcceptFollowSerializer, \
     BlockPageSerializer, PageListSerializer
 from pages.services import add_user_to_followers, remove_user_from_followers, accept_follow_request, \
@@ -28,7 +29,8 @@ class PageViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Creat
     }
     permission_classes = {
         'list': (IsAuthenticated(),),
-        'retrieve': (IsAuthenticated(), (IsPageNotBlocked | IsAdminOrModerator)(), (IsPageNotPrivate | IsPageOwner)(),),
+        'retrieve': (IsAuthenticated(), IsPageNotBlockedOrIsAdminOrModerator(),
+                     IsPageNotPrivateOrIsOwnerOrAdminOrModerator()),
         'create': (IsAuthenticated(),),
         'update': (IsPageOwner(), IsPageNotBlocked(),),
         'destroy': (IsPageOwner(), IsPageNotBlocked(),),
@@ -50,7 +52,7 @@ class PageViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Creat
         return self.serializer_classes.get(self.action, self.default_serializer_class)
 
     def get_permissions(self):
-        return self.permission_classes.get(self.action, (AllowAny(),))
+        return self.permission_classes.get(self.action, (IsAuthenticated(),))
 
     @action(detail=True, methods=["post"])
     def follow(self, request, pk=None):
@@ -128,3 +130,13 @@ class TagViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Create
                  mixins.DestroyModelMixin, viewsets.GenericViewSet):
     serializer_class = TagSerializer
     queryset = Tag.objects.all()
+    permission_classes = {
+        'list': (IsAuthenticated(),),
+        'retrieve': (IsAuthenticated(),),
+        'create': (IsAdmin(),),
+        'update': (IsAdmin(),),
+        'destroy': (IsAdmin(),)
+    }
+
+    def get_permissions(self):
+        return self.permission_classes.get(self.action, (AllowAny(),))

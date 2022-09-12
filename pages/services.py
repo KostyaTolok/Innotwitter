@@ -1,10 +1,8 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import status
-from rest_framework.response import Response
 
 from pages.serializers import AcceptFollowSerializer
 from users.models import User
-from users.serializers import UserSerializer
 
 
 def add_user_to_followers(page, user):
@@ -34,15 +32,12 @@ def accept_follow_request(page, follow_request):
     serializer = AcceptFollowSerializer(data=follow_request)
     serializer.is_valid(raise_exception=True)
 
-    user_id = serializer.data.get("user_id", None)
-
-    if user_id is None:
-        return "User id is not provided", status.HTTP_400_BAD_REQUEST
+    user_id = serializer.data.get("user_id")
 
     user = get_object_or_404(User, id=user_id)
 
     if user.is_blocked:
-        return "User is blocked", status.HTTP_403_FORBIDDEN
+        return "User is blocked", status.HTTP_400_BAD_REQUEST
 
     if not page.follow_requests.contains(user):
         return "User didn't send follow request", status.HTTP_400_BAD_REQUEST
