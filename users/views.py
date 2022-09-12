@@ -38,7 +38,7 @@ class UserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Gen
         return self.serializer_classes.get(self.action, self.default_serializer_class)
 
     def get_permissions(self):
-        return self.permission_classes.get(self.action, [AllowAny()])
+        return self.permission_classes.get(self.action, (AllowAny(),))
 
     @action(detail=False, methods=["post"], url_path="change-block")
     def change_user_block_status(self, request, pk=None):

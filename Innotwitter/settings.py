@@ -56,7 +56,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'Innotwitter.middleware.jwt_middleware',
+    # 'Innotwitter.middleware.jwt_middleware',
 ]
 
 REST_FRAMEWORK = {

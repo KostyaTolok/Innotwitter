@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from Innotwitter.permissions import IsAdmin
 from posts.filters import PostFilter
 from posts.models import Post
-from posts.permissions import IsPostPageOwner, IsPostPageNotBlocked
+from posts.permissions import IsPostPageOwner, IsPostPageNotBlocked, IsAllowedToCreatePost
 from posts.serializers import PostSerializer, PostDetailSerializer
 from posts.services import change_post_like_status, get_news_feed, get_liked_posts
 
@@ -26,7 +26,7 @@ class PostViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Creat
     permission_classes = {
         'list': (IsAdmin(),),
         'retrieve': (IsAuthenticated(), IsPostPageNotBlocked()),
-        'create': (IsPostPageOwner(), IsPostPageNotBlocked(),),
+        'create': (IsAllowedToCreatePost(),),
         'update': (IsPostPageOwner(), IsPostPageNotBlocked(),),
         'destroy': (IsPostPageOwner(), IsPostPageNotBlocked(),),
         'change_like_status': (IsAuthenticated(), IsPostPageNotBlocked(),),

@@ -14,7 +14,7 @@ class Tag(models.Model):
 class Page(models.Model):
     uuid = models.UUIDField(verbose_name="Page uuid", primary_key=True, max_length=30, unique=True, default=uuid.uuid4)
     name = models.CharField(verbose_name="Page name", max_length=80, blank=False)
-    description = models.TextField(verbose_name="Page description", max_length=500)
+    description = models.TextField(verbose_name="Page description", max_length=500, blank=True)
     image_path = models.URLField(verbose_name="Page image path", null=True, blank=True)
     is_private = models.BooleanField(verbose_name="Is page private", default=False)
     is_blocked_permanently = models.BooleanField(verbose_name="Is page blocked permanently", default=False)
