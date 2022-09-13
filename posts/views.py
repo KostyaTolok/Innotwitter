@@ -49,8 +49,7 @@ class PostViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Creat
 
     def perform_create(self, serializer):
         instance = serializer.save()
-        page_id = instance.page.uuid
-        page = get_object_or_404(Page, uuid=page_id)
+        page = instance.page
 
         emails = get_page_followers_emails(page)
 
