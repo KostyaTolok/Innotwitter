@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 from Innotwitter.permissions import IsAdmin, IsAdminOrModerator
+from Innotwitter.services import upload_image, check_image_extension
 from pages.filters import PageFilter
 from pages.models import Page, Tag
 from pages.permissions import IsPageOwner, IsPageNotBlocked, IsNotPageOwner, \
@@ -53,6 +54,19 @@ class PageViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Creat
 
     def get_permissions(self):
         return self.permission_classes.get(self.action, (IsAuthenticated(),))
+
+    def create(self, request, *args, **kwargs):
+        page_image = request.FILES.get("page_image")
+
+        if page_image is None:
+            return Response("Page image is not provided", status.HTTP_400_BAD_REQUEST)
+
+        if check_image_extension(page_image):
+            return Response("Incorrect page image extension", status.HTTP_400_BAD_REQUEST)
+
+        upload_url = upload_image(page_image, "pages/")
+        request.data["image_path"] = upload_url
+        return super().create(request, *args, **kwargs)
 
     @action(detail=True, methods=["post"])
     def follow(self, request, pk=None):

@@ -1,6 +1,10 @@
+import os.path
+
+import boto3
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 
+from Innotwitter.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, AWS_ENDPOINT_URL, AWS_BUCKET_NAME
 from pages.serializers import AcceptFollowSerializer
 from users.models import User
 

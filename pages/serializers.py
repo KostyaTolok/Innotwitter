@@ -17,8 +17,9 @@ class PageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Page
-        fields = ("uuid", "name", "description", "image_path", "is_private", "is_blocked_permanently", "tags", "owner",
-                  "followers", "follow_requests")
+        fields = (
+            "uuid", "name", "description", "image_path", "is_private", "is_blocked_permanently", "tags",
+            "owner", "followers", "follow_requests")
         read_only_fields = ("followers", "follow_requests")
 
 
