@@ -56,7 +56,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # 'Innotwitter.middleware.jwt_middleware',
+    'Innotwitter.middleware.jwt_middleware',
 ]
 
 REST_FRAMEWORK = {
@@ -148,3 +148,10 @@ CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
 
 CORS_ORIGIN_ALLOW_ALL = os.getenv("CORS_ORIGIN_ALLOW_ALL", 'False').lower() == 'true'
 CORS_ALLOW_CREDENTIALS = os.getenv("CORS_ALLOW_CREDENTIALS", 'False').lower() == 'true'
+
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+AWS_REGION = os.getenv("AWS_REGION")
+AWS_ENDPOINT_URL = os.getenv("AWS_ENDPOINT_URL")
+
+EMAIL_SENDER = os.getenv('EMAIL_SENDER')
