@@ -14,11 +14,12 @@ class TagSerializer(serializers.ModelSerializer):
 
 class PageSerializer(serializers.ModelSerializer):
     owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    image = serializers.ImageField(allow_null=True, use_url=True, required=False, write_only=True)
 
     class Meta:
         model = Page
         fields = (
-            "uuid", "name", "description", "image_path", "is_private", "is_blocked_permanently", "tags",
+            "uuid", "name", "description", "image", "is_private", "is_blocked_permanently", "tags",
             "owner", "followers", "follow_requests")
         read_only_fields = ("followers", "follow_requests")
 
@@ -28,7 +29,7 @@ class PageListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Page
-        fields = ("uuid", "name", "description", "image_path", "is_private", "is_blocked_permanently",
+        fields = ("uuid", "name", "description", "image", "is_private", "is_blocked_permanently",
                   "unblock_date", "tags", "owner", "followers", "follow_requests")
         read_only_fields = ("followers", "follow_requests")
 
@@ -45,7 +46,7 @@ class PageDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Page
-        fields = ("uuid", "name", "description", "image_path", "is_private", "is_blocked_permanently",
+        fields = ("uuid", "name", "description", "image", "is_private", "is_blocked_permanently",
                   "unblock_date", "tags", "owner", "posts", "followers", "follow_requests")
         read_only_fields = ("followers", "follow_requests")
 

@@ -1,3 +1,5 @@
+import logging
+
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
@@ -15,6 +17,8 @@ from pages.serializers import PageSerializer, PageDetailSerializer, TagSerialize
 from pages.services import add_user_to_followers, remove_user_from_followers, accept_follow_request, \
     accept_all_follow_requests
 from users.serializers import UserSerializer
+
+logger = logging.getLogger(__name__)
 
 
 class PageViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, mixins.UpdateModelMixin,
@@ -55,18 +59,17 @@ class PageViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Creat
     def get_permissions(self):
         return self.permission_classes.get(self.action, (IsAuthenticated(),))
 
-    def create(self, request, *args, **kwargs):
-        page_image = request.FILES.get("page_image")
+    def perform_create(self, serializer):
+        page_image = self.request.FILES.get("image", None)
 
-        if page_image is None:
-            return Response("Page image is not provided", status.HTTP_400_BAD_REQUEST)
-
-        if check_image_extension(page_image):
-            return Response("Incorrect page image extension", status.HTTP_400_BAD_REQUEST)
-
-        upload_url = upload_image(page_image, "pages/")
-        request.data["image_path"] = upload_url
-        return super().create(request, *args, **kwargs)
+        if page_image is not None:
+            try:
+                upload_url = upload_image(page_image, "pages/")
+                serializer.save(image=upload_url)
+            except Exception as error:
+                logger.error(error)
+        else:
+            serializer.save()
 
     @action(detail=True, methods=["post"])
     def follow(self, request, pk=None):
