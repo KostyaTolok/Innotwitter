@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 from Innotwitter.permissions import IsAdmin, IsAdminOrModerator
-from Innotwitter.services import upload_image, check_image_extension
+from Innotwitter.services import upload_image
 from pages.filters import PageFilter
 from pages.models import Page, Tag
 from pages.permissions import IsPageOwner, IsPageNotBlocked, IsNotPageOwner, \
