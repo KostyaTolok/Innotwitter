@@ -47,14 +47,14 @@ class PostViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Creat
     def get_permissions(self):
         return self.permission_classes.get(self.action, (AllowAny(),))
 
-    def create(self, request, *args, **kwargs):
-        page_id = request.data.get("page")
+    def perform_create(self, serializer):
+        serializer.save()
+        page_id = self.request.data.get("page")
         page = get_object_or_404(Page, uuid=page_id)
 
         emails = get_page_followers_emails(page)
 
         send_notification.delay(emails, page.name)
-        return super().create(request, *args, **kwargs)
 
     @action(detail=True, methods=["post"], url_path="change-like")
     def change_like_status(self, request, pk=None):
