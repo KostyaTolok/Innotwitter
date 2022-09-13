@@ -32,3 +32,13 @@ def get_liked_posts(user):
     serializer.is_valid()
 
     return serializer.data
+
+
+def get_page_followers_emails(page):
+    emails = []
+
+    for follower in page.followers.all():
+        if not follower.is_blocked:
+            emails.append(follower.email)
+
+    return emails
