@@ -1,4 +1,5 @@
 import logging
+import os
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, mixins, status
@@ -61,15 +62,27 @@ class PageViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Creat
 
     def perform_create(self, serializer):
         page_image = self.request.FILES.get("image", None)
+        page = serializer.save()
 
-        if page_image is not None:
+        if page_image:
             try:
-                upload_url = upload_image(page_image, "pages/")
-                serializer.save(image=upload_url)
+                page_image_key = os.path.join("pages", str(page.uuid))
+                upload_image(page_image, page_image_key)
+                serializer.save(image=page_image_key)
             except Exception as error:
                 logger.error(error)
-        else:
-            serializer.save()
+
+    def perform_update(self, serializer):
+        page_image = self.request.FILES.get("image", None)
+        page = serializer.save()
+
+        if page_image:
+            try:
+                page_image_key = os.path.join("pages", str(page.uuid))
+                upload_image(page_image, page_image_key)
+                serializer.save(image=page_image_key)
+            except Exception as error:
+                logger.error(error)
 
     @action(detail=True, methods=["post"])
     def follow(self, request, pk=None):

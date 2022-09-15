@@ -50,9 +50,8 @@ class PostViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Creat
         return self.permission_classes.get(self.action, (AllowAny(),))
 
     def perform_create(self, serializer):
-        serializer.save()
-        page_id = serializer.validated_data.get("page").uuid
-        page = get_object_or_404(Page, uuid=page_id)
+        post = serializer.save()
+        page = post.page
 
         emails = get_page_followers_emails(page)
 

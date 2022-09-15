@@ -1,7 +1,7 @@
 import jwt
 from django.http import HttpResponse
 
-from Innotwitter.settings import JWT_SECRET_KEY
+from django.conf import settings
 from users.models import User
 
 
@@ -10,7 +10,7 @@ def jwt_middleware(get_response):
         jwt_token = request.headers.get("Authorization", None)
         if jwt_token:
             try:
-                payload = jwt.decode(jwt_token, JWT_SECRET_KEY, algorithms=['HS256'])
+                payload = jwt.decode(jwt_token, settings.JWT_SECRET_KEY, algorithms=['HS256'])
             except jwt.ExpiredSignatureError:
                 return HttpResponse("Authentication token has expired", status=401)
             except (jwt.DecodeError, jwt.InvalidTokenError):

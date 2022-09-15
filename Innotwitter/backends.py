@@ -2,7 +2,7 @@ import jwt
 from django.shortcuts import get_object_or_404
 from rest_framework import authentication
 
-from Innotwitter.settings import JWT_SECRET_KEY
+from django.conf import settings
 from users.models import User
 
 
@@ -16,7 +16,7 @@ class JWTAuthentication(authentication.BaseAuthentication):
         if not jwt_token:
             return None
 
-        payload = jwt.decode(jwt_token, JWT_SECRET_KEY, algorithms=['HS256'])
+        payload = jwt.decode(jwt_token, settings.JWT_SECRET_KEY, algorithms=['HS256'])
 
         username = payload.get("username")
 

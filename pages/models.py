@@ -1,7 +1,6 @@
-import datetime
+import uuid
 
 from django.db import models
-import uuid
 
 
 class Tag(models.Model):
