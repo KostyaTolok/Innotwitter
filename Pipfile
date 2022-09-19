@@ -19,6 +19,7 @@ uuid = "*"
 django-filter = "*"
 django-cors-headers = "*"
 pytest-django = "*"
+pillow = "*"
 
 [dev-packages]
 

@@ -1,14 +1,15 @@
-import boto3
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.conf import settings
+
+from Innotwitter.services import get_client
 
 logger = get_task_logger(__name__)
 
 
 @shared_task
 def send_notification(emails, page_name):
-    ses_client = boto3.client("ses", region_name=settings.AWS_REGION, endpoint_url=settings.AWS_ENDPOINT_URL)
+    ses_client = get_client("ses")
 
     charset = 'UTF-8'
     try:

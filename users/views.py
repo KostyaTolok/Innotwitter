@@ -1,3 +1,5 @@
+import logging
+import os
 from datetime import timedelta
 
 from django.shortcuts import get_object_or_404
@@ -8,26 +10,33 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from Innotwitter.permissions import IsAdmin
+from Innotwitter.services import upload_image
 from users.filters import UserFilter
 from users.models import User
-from users.serializers import UserSerializer, RegisterSerializer, LoginSerializer, BlockUserSerializer
+from users.permissions import IsSameUser
+from users.serializers import UserSerializer, RegisterSerializer, LoginSerializer, BlockUserSerializer, \
+    UpdateUserInfoSerializer
 from users.services import change_user_block_status, generate_token
 
+logger = logging.getLogger(__name__)
 
-class UserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+
+class UserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
     serializer_classes = {
         'list': UserSerializer,
         'retrieve': UserSerializer,
         'register': RegisterSerializer,
         'login': LoginSerializer,
-        'change_user_block_status': BlockUserSerializer
+        'change_user_block_status': BlockUserSerializer,
+        'update': UpdateUserInfoSerializer
     }
     permission_classes = {
         'list': (IsAdmin(),),
         'retrieve': (IsAdmin(),),
         'register': (AllowAny(),),
         'login': (AllowAny(),),
-        'change_user_block_status': (IsAdmin(),)
+        'change_user_block_status': (IsAdmin(),),
+        'update': (IsSameUser(),)
     }
     queryset = User.objects.all()
     filter_backends = (DjangoFilterBackend,)
@@ -39,6 +48,17 @@ class UserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Gen
 
     def get_permissions(self):
         return self.permission_classes.get(self.action, (AllowAny(),))
+
+    def perform_update(self, serializer):
+        user = serializer.save()
+        user_image = self.request.FILES.get("image", None)
+        if user_image:
+            try:
+                user_image_key = os.path.join("users", str(user.id))
+                upload_image(user_image, user_image_key)
+                serializer.save(image=user_image_key)
+            except Exception as error:
+                logger.error(error)
 
     @action(detail=False, methods=["post"], url_path="change-block")
     def change_user_block_status(self, request, pk=None):
@@ -59,7 +79,7 @@ class UserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Gen
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        username = request.data.get("username")
+        username = serializer.validated_data.get("username")
 
         user = get_object_or_404(User, username=username)
 

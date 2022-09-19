@@ -1,3 +1,6 @@
+import logging
+import os
+
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
@@ -5,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 from Innotwitter.permissions import IsAdmin, IsAdminOrModerator
+from Innotwitter.services import upload_image
 from pages.filters import PageFilter
 from pages.models import Page, Tag
 from pages.permissions import IsPageOwner, IsPageNotBlocked, IsNotPageOwner, \
@@ -14,6 +18,8 @@ from pages.serializers import PageSerializer, PageDetailSerializer, TagSerialize
 from pages.services import add_user_to_followers, remove_user_from_followers, accept_follow_request, \
     accept_all_follow_requests
 from users.serializers import UserSerializer
+
+logger = logging.getLogger(__name__)
 
 
 class PageViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, mixins.UpdateModelMixin,
@@ -53,6 +59,30 @@ class PageViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Creat
 
     def get_permissions(self):
         return self.permission_classes.get(self.action, (IsAuthenticated(),))
+
+    def perform_create(self, serializer):
+        page_image = self.request.FILES.get("image", None)
+        page = serializer.save()
+
+        if page_image:
+            try:
+                page_image_key = os.path.join("pages", str(page.uuid))
+                upload_image(page_image, page_image_key)
+                serializer.save(image=page_image_key)
+            except Exception as error:
+                logger.error(error)
+
+    def perform_update(self, serializer):
+        page_image = self.request.FILES.get("image", None)
+        page = serializer.save()
+
+        if page_image:
+            try:
+                page_image_key = os.path.join("pages", str(page.uuid))
+                upload_image(page_image, page_image_key)
+                serializer.save(image=page_image_key)
+            except Exception as error:
+                logger.error(error)
 
     @action(detail=True, methods=["post"])
     def follow(self, request, pk=None):

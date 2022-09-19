@@ -2,6 +2,7 @@ from django.utils import timezone
 
 from rest_framework import serializers, status
 
+from Innotwitter.services import get_image_url
 from pages.models import Page, Tag
 from posts.serializers import PostDetailSerializer
 
@@ -14,12 +15,13 @@ class TagSerializer(serializers.ModelSerializer):
 
 class PageSerializer(serializers.ModelSerializer):
     owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    image = serializers.ImageField(allow_null=True, use_url=True, required=False, write_only=True)
 
     class Meta:
         model = Page
-        fields = ("uuid", "name", "description", "image_path", "is_private", "is_blocked_permanently", "tags", "owner",
-                  "followers", "follow_requests")
-        read_only_fields = ("followers", "follow_requests")
+        fields = ("uuid", "name", "description", "image", "is_private", "is_blocked_permanently", "tags",
+                  "owner", "followers", "follow_requests")
+        read_only_fields = ("uuid", "followers", "follow_requests")
 
 
 class PageListSerializer(serializers.ModelSerializer):
@@ -27,14 +29,16 @@ class PageListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Page
-        fields = ("uuid", "name", "description", "image_path", "is_private", "is_blocked_permanently",
+        fields = ("uuid", "name", "description", "image", "is_private", "is_blocked_permanently",
                   "unblock_date", "tags", "owner", "followers", "follow_requests")
-        read_only_fields = ("followers", "follow_requests")
+        read_only_fields = ("uuid", "followers", "follow_requests")
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         if instance.unblock_date:
             representation['unblock_date'] = instance.unblock_date.strftime("%d.%m.%Y %H:%M")
+        if instance.image:
+            representation['image'] = get_image_url(instance.image)
         return representation
 
 
@@ -44,14 +48,16 @@ class PageDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Page
-        fields = ("uuid", "name", "description", "image_path", "is_private", "is_blocked_permanently",
+        fields = ("uuid", "name", "description", "image", "is_private", "is_blocked_permanently",
                   "unblock_date", "tags", "owner", "posts", "followers", "follow_requests")
-        read_only_fields = ("followers", "follow_requests")
+        read_only_fields = ("uuid", "followers", "follow_requests")
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         if instance.unblock_date:
             representation['unblock_date'] = instance.unblock_date.strftime("%d.%m.%Y %H:%M")
+        if instance.image:
+            representation['image'] = get_image_url(instance.image)
         return representation
 
 

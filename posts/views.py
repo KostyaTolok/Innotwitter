@@ -1,3 +1,5 @@
+import logging
+
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, mixins, status
@@ -48,8 +50,8 @@ class PostViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Creat
         return self.permission_classes.get(self.action, (AllowAny(),))
 
     def perform_create(self, serializer):
-        instance = serializer.save()
-        page = instance.page
+        post = serializer.save()
+        page = post.page
 
         emails = get_page_followers_emails(page)
 

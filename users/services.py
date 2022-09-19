@@ -4,7 +4,7 @@ import jwt
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 
-from Innotwitter.settings import JWT_SECRET_KEY
+from django.conf import settings
 from users.models import User
 
 
@@ -34,4 +34,4 @@ def generate_token(username, role, expires_in):
         "iat": datetime.utcnow()
     }
 
-    return jwt.encode(payload, JWT_SECRET_KEY, algorithm="HS256")
+    return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm="HS256")
