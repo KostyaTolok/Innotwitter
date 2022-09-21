@@ -1,6 +1,3 @@
-import boto3
-
-
 class PageStatisticsRepository:
     def __init__(self, db):
         self.table_name = "PageStatistics"
@@ -70,7 +67,7 @@ class PageStatisticsRepository:
         response = self.__db.delete_item(
             TableName=self.table_name,
             Key={
-                'uuid': page_uuid
+                'uuid': {'S': page_uuid}
             }
         )
         return response

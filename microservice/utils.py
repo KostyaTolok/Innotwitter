@@ -6,3 +6,7 @@ class MessageTypes(Enum):
     UPDATE = 2
     DELETE = 3
 
+
+class StatusCodes(Enum):
+    SUCCESS = 200
+
