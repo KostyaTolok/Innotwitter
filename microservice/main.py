@@ -1,8 +1,15 @@
 from fastapi import FastAPI
 
+from consumer import consume_message
+
 app = FastAPI()
 
 
-@app.get("/hello")
+@app.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return "hello"
+
+
+@app.on_event("startup")
+async def startup():
+    await consume_message()
