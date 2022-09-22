@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import jwt
 from django.shortcuts import get_object_or_404
@@ -26,7 +26,7 @@ def change_user_block_status(user_id):
         return "User unblocked", status.HTTP_200_OK
 
 
-def generate_token(username, role, expires_in):
+def generate_token(username, role, expires_in=timedelta(minutes=settings.ACCESS_TOKEN_DEFAULT_EXPIRE_MINUTES)):
     payload = {
         "username": username,
         "role": role,

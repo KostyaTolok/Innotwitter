@@ -1,3 +1,6 @@
+from exceptions import NotFoundException
+
+
 class PageStatisticsRepository:
     def __init__(self, db):
         self.table_name = "PageStatistics"
@@ -7,8 +10,18 @@ class PageStatisticsRepository:
         response = self.__db.scan(TableName=self.table_name)
         return response.get('Items', [])
 
+    def retrieve(self, page_uuid):
+        response = self.__db.get_item(TableName=self.table_name, Key={'uuid': {'S': page_uuid}})
+        item = response.get('Item')
+        if not item:
+            raise NotFoundException("Page statistics not found")
+        return item
+
     def create(self, statistics):
-        response = self.__db.put_item(TableName=self.table_name, Item={"uuid": {"S": statistics.uuid}})
+        response = self.__db.put_item(TableName=self.table_name, Item={
+            "uuid": {"S": statistics.uuid},
+            "owner_username": {"S": statistics.owner_username}
+        })
         return response
 
     def update(self, statistics):
