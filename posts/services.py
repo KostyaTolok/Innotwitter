@@ -1,5 +1,9 @@
+import asyncio
+
 from rest_framework import status
 
+from Innotwitter.producer import publish_message
+from Innotwitter.utils import MessageTypes
 from posts.models import Post
 from posts.serializers import PostDetailSerializer
 
@@ -42,3 +46,10 @@ def get_page_followers_emails(page):
             emails.append(follower.email)
 
     return emails
+
+
+def send_update_posts_count_message(page_uuid, posts_count):
+    message = {'uuid': str(page_uuid), 'type': MessageTypes.UPDATE.name,
+               "posts_count": posts_count}
+
+    asyncio.run(publish_message(message))

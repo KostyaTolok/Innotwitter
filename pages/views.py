@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 
@@ -8,7 +9,9 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 from Innotwitter.permissions import IsAdmin, IsAdminOrModerator
+from Innotwitter.producer import publish_message
 from Innotwitter.services import upload_image
+from Innotwitter.utils import MessageTypes
 from pages.filters import PageFilter
 from pages.models import Page, Tag
 from pages.permissions import IsPageOwner, IsPageNotBlocked, IsNotPageOwner, \
@@ -16,7 +19,7 @@ from pages.permissions import IsPageOwner, IsPageNotBlocked, IsNotPageOwner, \
 from pages.serializers import PageSerializer, PageDetailSerializer, TagSerializer, AcceptFollowSerializer, \
     BlockPageSerializer, PageListSerializer
 from pages.services import add_user_to_followers, remove_user_from_followers, accept_follow_request, \
-    accept_all_follow_requests
+    accept_all_follow_requests, send_create_page_statistics_message, send_destroy_page_statistics_message
 from users.serializers import UserSerializer
 
 logger = logging.getLogger(__name__)
@@ -68,7 +71,10 @@ class PageViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Creat
             try:
                 page_image_key = os.path.join("pages", str(page.uuid))
                 upload_image(page_image, page_image_key)
+
                 serializer.save(image=page_image_key)
+
+                send_create_page_statistics_message(page.uuid)
             except Exception as error:
                 logger.error(error)
 
@@ -84,6 +90,10 @@ class PageViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Creat
             except Exception as error:
                 logger.error(error)
 
+    def perform_destroy(self, instance):
+        send_destroy_page_statistics_message(instance.uuid)
+        instance.delete()
+
     @action(detail=True, methods=["post"])
     def follow(self, request, pk=None):
         user = request.user
@@ -91,6 +101,7 @@ class PageViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Creat
         page = self.get_object()
 
         message, status_code = add_user_to_followers(page, user)
+
         return Response(message, status_code)
 
     @action(detail=True, methods=["post"])
