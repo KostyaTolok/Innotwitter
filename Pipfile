@@ -21,6 +21,8 @@ django-cors-headers = "*"
 pytest-django = "*"
 pillow = "*"
 aio-pika = "*"
+requests = "*"
+botocore = "*"
 
 [dev-packages]
 

@@ -76,8 +76,8 @@ def accept_all_follow_requests(page):
     return "All follow requests accepted", status.HTTP_200_OK
 
 
-def send_create_page_statistics_message(page_uuid):
-    message = {'uuid': str(page_uuid), 'type': MessageTypes.CREATE.name}
+def send_create_page_statistics_message(page_uuid, page_owner_username):
+    message = {'uuid': str(page_uuid), 'owner_username': page_owner_username, 'type': MessageTypes.CREATE.name}
 
     asyncio.run(publish_message(message))
 

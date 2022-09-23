@@ -1,4 +1,4 @@
-import asyncio
+import logging
 import logging
 import os
 
@@ -9,9 +9,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 from Innotwitter.permissions import IsAdmin, IsAdminOrModerator
-from Innotwitter.producer import publish_message
 from Innotwitter.services import upload_image
-from Innotwitter.utils import MessageTypes
 from pages.filters import PageFilter
 from pages.models import Page, Tag
 from pages.permissions import IsPageOwner, IsPageNotBlocked, IsNotPageOwner, \
@@ -74,7 +72,7 @@ class PageViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Creat
 
                 serializer.save(image=page_image_key)
 
-                send_create_page_statistics_message(page.uuid)
+                send_create_page_statistics_message(page.uuid, page.owner.username)
             except Exception as error:
                 logger.error(error)
 

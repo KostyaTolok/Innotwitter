@@ -9,13 +9,12 @@ from rest_framework.response import Response
 
 from Innotwitter.permissions import IsAdmin
 from pages.models import Page
-from posts.tasks import send_notification
 from posts.filters import PostFilter
 from posts.models import Post
 from posts.permissions import IsPostPageOwner, IsPostPageNotBlocked, IsAllowedToCreatePost
 from posts.serializers import PostSerializer, PostDetailSerializer
-from posts.services import change_post_like_status, get_news_feed, get_liked_posts, get_page_followers_emails, \
-    send_update_posts_count_message
+from posts.services import change_post_like_status, get_news_feed, get_liked_posts, \
+    send_update_posts_count_message, send_email_notification_to_followers
 
 
 class PostViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, mixins.UpdateModelMixin,
@@ -54,9 +53,7 @@ class PostViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Creat
         post = serializer.save()
         page = post.page
 
-        emails = get_page_followers_emails(page)
-
-        send_notification.delay(emails, page.name)
+        send_email_notification_to_followers(page)
         send_update_posts_count_message(page.uuid, page.posts.count())
 
     @action(detail=True, methods=["post"], url_path="change-like")

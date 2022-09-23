@@ -6,6 +6,7 @@ from Innotwitter.producer import publish_message
 from Innotwitter.utils import MessageTypes
 from posts.models import Post
 from posts.serializers import PostDetailSerializer
+from posts.tasks import send_notification
 
 
 def change_post_like_status(post, user):
@@ -38,14 +39,15 @@ def get_liked_posts(user):
     return serializer.data
 
 
-def get_page_followers_emails(page):
+def send_email_notification_to_followers(page):
     emails = []
 
     for follower in page.followers.all():
         if not follower.is_blocked:
             emails.append(follower.email)
 
-    return emails
+    if len(emails) != 0:
+        send_notification.delay(emails, page.name)
 
 
 def send_update_posts_count_message(page_uuid, posts_count):
