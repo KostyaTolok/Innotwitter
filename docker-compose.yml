@@ -8,7 +8,7 @@ services:
       - "4000:4000"
     restart: always
     healthcheck:
-      test: pg_isready -h postgresdb -p 5432 -U postgres
+      test: pg_isready -h postgresdb -p ${POSTGRES_PORT} -U ${POSTGRES_USER}
       interval: 5s
       timeout: 10s
       retries: 3
