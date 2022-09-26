@@ -1,5 +1,4 @@
 import logging
-import logging
 import os
 
 from django_filters.rest_framework import DjangoFilterBackend
@@ -111,7 +110,7 @@ class PageViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Creat
         message, status_code = remove_user_from_followers(page, user)
         return Response(message, status_code)
 
-    @action(detail=True, methods=["get"], url_path="follow-requests")
+    @action(detail=True, methods=["get"], url_path="follow-requests", url_name="get_follow_requests")
     def get_follow_requests(self, request, pk=None):
         page = self.get_object()
         serializer = UserSerializer(data=page.follow_requests, many=True)
@@ -119,21 +118,21 @@ class PageViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Creat
 
         return Response(serializer.data, status.HTTP_200_OK)
 
-    @action(detail=True, methods=["post"], url_path="accept-follow")
+    @action(detail=True, methods=["post"], url_path="accept-follow", url_name="accept_follow_request")
     def accept_follow_request(self, request, pk=None):
         page = self.get_object()
 
         message, status_code = accept_follow_request(page, request.data)
         return Response(message, status_code)
 
-    @action(detail=True, methods=["post"], url_path="accept-all-follows")
+    @action(detail=True, methods=["post"], url_path="accept-all-follows", url_name="accept_all_follow_requests")
     def accept_all_follow_requests(self, request, pk=None):
         page = self.get_object()
 
         message, status_code = accept_all_follow_requests(page)
         return Response(message, status_code)
 
-    @action(detail=True, methods=["patch"], url_path="block-page")
+    @action(detail=True, methods=["patch"], url_path="block-page", url_name="block_page")
     def block_page(self, request, pk=True):
         serializer = BlockPageSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -145,7 +144,7 @@ class PageViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Creat
 
         return Response(f"Page blocked", status.HTTP_200_OK)
 
-    @action(detail=True, methods=["patch"], url_path="unblock-page")
+    @action(detail=True, methods=["patch"], url_path="unblock-page", url_name="unblock_page")
     def unblock_page(self, request, pk=None):
         page = self.get_object()
         page.unblock_date = None
@@ -153,7 +152,7 @@ class PageViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Creat
 
         return Response("Page unblocked", status.HTTP_200_OK)
 
-    @action(detail=True, methods=["patch"], url_path="change-permanent-block")
+    @action(detail=True, methods=["patch"], url_path="change-permanent-block", url_name="change_permanent_block_status")
     def change_permanent_block_status(self, request, pk=None):
         page = self.get_object()
         page.is_blocked_permanently = not page.is_blocked_permanently

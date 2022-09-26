@@ -1,6 +1,3 @@
-import logging
-
-from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
@@ -8,7 +5,6 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from Innotwitter.permissions import IsAdmin
-from pages.models import Page
 from posts.filters import PostFilter
 from posts.models import Post
 from posts.permissions import IsPostPageOwner, IsPostPageNotBlocked, IsAllowedToCreatePost
@@ -56,7 +52,7 @@ class PostViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Creat
         send_email_notification_to_followers(page)
         send_update_posts_count_message(page.uuid, page.posts.count())
 
-    @action(detail=True, methods=["post"], url_path="change-like")
+    @action(detail=True, methods=["post"], url_path="change-like", url_name="change_like_status")
     def change_like_status(self, request, pk=None):
         user = request.user
 
@@ -66,13 +62,13 @@ class PostViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Creat
 
         return Response(message, status_code)
 
-    @action(detail=False, methods=["get"], url_path="liked-posts")
+    @action(detail=False, methods=["get"], url_path="liked-posts", url_name="get_liked_posts")
     def get_liked_posts(self, request):
         liked_posts = get_liked_posts(request.user)
 
         return Response(liked_posts, status.HTTP_200_OK)
 
-    @action(detail=False, methods=["get"], url_path="news-feed")
+    @action(detail=False, methods=["get"], url_path="news-feed", url_name="get_news_feed")
     def get_news_feed(self, request):
         posts = get_news_feed(request.user)
         serializer = PostDetailSerializer(posts, many=True)

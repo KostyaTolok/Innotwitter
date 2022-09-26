@@ -8,10 +8,10 @@ services:
       - "4000:4000"
     restart: always
     healthcheck:
-      test: /usr/bin/pg_isready -U postgres
+      test: pg_isready -h postgresdb -p ${POSTGRES_PORT} -U ${POSTGRES_USER}
       interval: 5s
       timeout: 10s
-      retries: 120
+      retries: 3
     env_file: .env
   core:
     build: .
@@ -21,6 +21,11 @@ services:
     depends_on:
       postgresdb:
         condition: service_healthy
+    healthcheck:
+      test: curl --silent --output /dev/null ${CORE_HEALTHCHECK_URL}
+      interval: 5s
+      timeout: 10s
+      retries: 3
   rabbitmq:
     image: rabbitmq:3.10.7-alpine
     container_name: rabbitmq
@@ -28,6 +33,7 @@ services:
       - "5000:5000"
   localstack:
     image: localstack/localstack:1.0.4
+    container_name: localstack
     ports:
       - '4566:4566'
     volumes:
@@ -39,3 +45,6 @@ services:
     container_name: microservice
     ports:
       - "3000:3000"
+    depends_on:
+      core:
+        condition: service_healthy

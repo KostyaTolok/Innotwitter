@@ -60,7 +60,7 @@ class UserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Updat
             except Exception as error:
                 logger.error(error)
 
-    @action(detail=False, methods=["post"], url_path="change-block")
+    @action(detail=False, methods=["post"], url_path="change-block", url_name="change_user_block_status")
     def change_user_block_status(self, request, pk=None):
         serializer = BlockUserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
