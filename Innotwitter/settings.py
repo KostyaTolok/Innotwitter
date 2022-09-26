@@ -73,8 +73,7 @@ ROOT_URLCONF = 'Innotwitter.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates']
-        ,
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -160,4 +159,4 @@ AWS_BUCKET_NAME = os.getenv("AWS_BUCKET_NAME")
 
 EMAIL_SENDER = os.getenv('EMAIL_SENDER')
 
-ACCESS_TOKEN_DEFAULT_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_DEFAULT_EXPIRE_MINUTES"))
+ACCESS_TOKEN_DEFAULT_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_DEFAULT_EXPIRE_MINUTES", 5))
