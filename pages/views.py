@@ -65,15 +65,19 @@ class PageViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Creat
         page = serializer.save()
 
         if page_image:
+            page_image_key = os.path.join("pages", str(page.uuid))
+
             try:
-                page_image_key = os.path.join("pages", str(page.uuid))
                 upload_image(page_image, page_image_key)
-
-                serializer.save(image=page_image_key)
-
-                send_create_page_statistics_message(page.uuid, page.owner.username)
             except Exception as error:
                 logger.error(error)
+
+            serializer.save(image=page_image_key)
+
+        try:
+            send_create_page_statistics_message(page.uuid, page.owner.username)
+        except Exception as error:
+            logger.error(error)
 
     def perform_update(self, serializer):
         page_image = self.request.FILES.get("image", None)

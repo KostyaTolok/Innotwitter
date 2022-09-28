@@ -8,7 +8,7 @@ services:
       - "4000:4000"
     restart: always
     healthcheck:
-      test: pg_isready -h postgresdb -p ${POSTGRES_PORT} -U ${POSTGRES_USER}
+      test: pg_isready -U ${POSTGRES_USER}
       interval: 5s
       timeout: 10s
       retries: 3
@@ -21,24 +21,27 @@ services:
     depends_on:
       postgresdb:
         condition: service_healthy
-    healthcheck:
-      test: curl --silent --output /dev/null ${CORE_HEALTHCHECK_URL}
-      interval: 5s
-      timeout: 10s
-      retries: 3
+      rabbitmq:
+        condition: service_healthy
+    env_file: .env
   rabbitmq:
-    image: rabbitmq:3.10.7-alpine
+    image: rabbitmq:3.10.7-management-alpine
     container_name: rabbitmq
     ports:
       - "5000:5000"
+      - "8080:8080"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 5s
+      timeout: 10s
+      retries: 3
   localstack:
     image: localstack/localstack:1.0.4
     container_name: localstack
     ports:
       - '4566:4566'
     volumes:
-      - "${TMPDIR:-/tmp/localstack}:/tmp/localstack"
-      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./aws:/docker-entrypoint-initaws.d"
     env_file: .env
   microservice:
     build: ./microservice
@@ -46,5 +49,5 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      core:
+      rabbitmq:
         condition: service_healthy
