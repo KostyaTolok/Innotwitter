@@ -1,0 +1,53 @@
+version: "3.9"
+
+services:
+  postgresdb:
+    image: postgres:14-alpine
+    container_name: postgresdb
+    ports:
+      - "4000:4000"
+    restart: always
+    healthcheck:
+      test: pg_isready -U ${POSTGRES_USER}
+      interval: 5s
+      timeout: 10s
+      retries: 3
+    env_file: .env
+  core:
+    build: .
+    container_name: core
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgresdb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    env_file: .env
+  rabbitmq:
+    image: rabbitmq:3.10.7-management-alpine
+    container_name: rabbitmq
+    ports:
+      - "5000:5000"
+      - "8080:8080"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 5s
+      timeout: 10s
+      retries: 3
+  localstack:
+    image: localstack/localstack:1.0.4
+    container_name: localstack
+    ports:
+      - '4566:4566'
+    volumes:
+      - "./aws:/docker-entrypoint-initaws.d"
+    env_file: .env
+  microservice:
+    build: ./microservice
+    container_name: microservice
+    ports:
+      - "3000:3000"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
